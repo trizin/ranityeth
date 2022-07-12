@@ -16,7 +16,7 @@ pub(crate) struct Args {
     pub casesensitive: bool,
 
     /// Search for a contract address
-    #[clap(short, long, value_parser, default_value_t = false)]
+    #[clap(long, value_parser, default_value_t = false)]
     pub contract: bool,
 
     /// Number of threads to use
