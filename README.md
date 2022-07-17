@@ -23,7 +23,7 @@ OPTIONS:
 
 ```bash
 $ ./vanityeth -p dead -s startswith -t 4 -c
-Starting generation with 20 threads.
+Starting generation with 4 threads.
 Private key: c2a6ce05488e5bacb8e4c2edc2bec4d8ae4572cbbeddb3564b52e2ca45887167
 Address: 0xdeadE47Af1E325c4B5905818EC43F6bD44e18aCb
 ```
