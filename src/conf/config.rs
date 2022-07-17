@@ -12,7 +12,7 @@ pub struct AppConfig {
     pub strategy: Strategy,
     pub casesensitive: bool,
     pub contract: bool,
-    pub threads: u8,
+    pub threads: u32,
 }
 
 pub fn get_config() -> AppConfig {
@@ -28,6 +28,6 @@ pub fn get_config() -> AppConfig {
         strategy,
         casesensitive: args.casesensitive,
         contract: args.contract,
-        threads: args.threads,
+        threads: args.threads as u32,
     }
 }
