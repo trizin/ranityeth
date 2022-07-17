@@ -75,7 +75,7 @@ pub fn spawn_threads(
     threads
 }
 
-pub fn run(count: u32, config: AppConfig) {
+pub fn run(config: AppConfig) {
     let mut privatkey_list: Vec<String> = Vec::new();
     for _ in 0..10000 {
         let acc = eth::Wallet::new();
@@ -91,7 +91,7 @@ pub fn run(count: u32, config: AppConfig) {
     let found = Arc::new(AtomicBool::new(false));
     let processed = Arc::new(AtomicU64::new(0));
 
-    let threads = spawn_threads(count, &config, &tx, &found, &processed);
+    let threads = spawn_threads(config.threads, &config, &tx, &found, &processed);
 
     let start_time = Instant::now();
     let mut last_generated = 0;
