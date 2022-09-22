@@ -13,7 +13,11 @@ pub fn calculate_difficulty(s: &str, case_sensitive: bool) -> u64 {
 }
 
 pub fn calculate_estimated_time(speed: u64, difficulty: u64) -> u64 {
-    difficulty / (speed + 1)
+    if speed == 0 {
+        0
+    } else {
+        difficulty / speed
+    }
 }
 
 pub fn time_left(estimated_time: u64, elapsed_time: u64) -> u64 {
