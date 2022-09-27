@@ -13,6 +13,7 @@ pub struct AppConfig {
     pub casesensitive: bool,
     pub contract: bool,
     pub threads: u32,
+    pub continuous: bool,
 }
 
 pub fn get_config() -> AppConfig {
@@ -29,5 +30,6 @@ pub fn get_config() -> AppConfig {
         casesensitive: args.casesensitive,
         contract: args.contract,
         threads: args.threads as u32,
+        continuous: args.continuous,
     }
 }
