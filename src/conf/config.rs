@@ -29,6 +29,10 @@ pub fn get_config() -> AppConfig {
         panic!("Trailing strategy only accepts a single character pattern");
     }
 
+    if args.continuous && strategy == Strategy::Trailing {
+        panic!("Continuous mode is not supported with trailing strategy");
+    }
+
     AppConfig {
         pattern: args.pattern,
         strategy,
