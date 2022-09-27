@@ -11,10 +11,11 @@ USAGE:
 
 OPTIONS:
     -c, --casesensitive          Whether the pattern is case sensitive
+    -c, --continuous             continuous mode
         --contract               Search for a contract address
     -h, --help                   Print help information
     -p, --pattern <PATTERN>      The pattern to look for
-    -s, --strategy <STRATEGY>    Either use "contains" or "startswith"
+    -s, --strategy <STRATEGY>    "contains", "startswith" or "trailing"
     -t, --threads <THREADS>      Number of threads to use [default: 1]
     -V, --version                Print version information
 ```
