@@ -15,9 +15,6 @@ env:
   LINUX_AMD64_TARGET: x86_64-unknown-linux-musl
   LINUX_ARM64_TARGET: aarch64-unknown-linux-musl
 
-  # Space separated paths to include in the archive.
-  RELEASE_ADDS: README.md LICENSE-APACHE LICENSE-MIT
-
 jobs:
   build:
     name: Build artifacts
@@ -85,7 +82,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: |
           mv ./target/${{ matrix.target }}/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}/${{ env.RELEASE_BIN }}
-          mv ${{ env.RELEASE_ADDS }} ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}
 
       - name: Move binaries (Windows)
         if: matrix.os == 'windows-latest'
@@ -93,7 +89,6 @@ jobs:
         run: |
           cp ./target/${{ matrix.target }}/release/${{ env.RELEASE_BIN }}.exe ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}/${{ env.RELEASE_BIN }}.exe
           cp ./target/${{ matrix.target }}/release/${{ env.RELEASE_BIN }}.exe wasm-pack-init.exe
-          mv ${{ env.RELEASE_ADDS }} ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}
           mv wasm-pack-init.exe ${{ env.RELEASE_DIR }}
 
       - name: Create tarball
@@ -153,9 +148,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
+          asset_path: ./vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
           asset_content_type: application/gzip
-          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
+          asset_name: vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
 
       - name: Release Linux arm64 tarball
         uses: actions/upload-release-asset@v1
@@ -163,9 +158,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
+          asset_path: ./vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
           asset_content_type: application/gzip
-          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
+          asset_name: vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
 
       - name: Release Windows tarball
         uses: actions/upload-release-asset@v1
@@ -173,9 +168,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+          asset_path: ./vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
           asset_content_type: application/gzip
-          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+          asset_name: vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
 
       - name: Release Windows init exe
         uses: actions/upload-release-asset@v1
@@ -183,9 +178,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./wasm-pack-init.exe
+          asset_path: ./vanityeth-init.exe
           asset_content_type: application/vnd.microsoft.portable-executable
-          asset_name: wasm-pack-init.exe
+          asset_name: vanityeth-init.exe
 
       - name: Release MacOS tarball
         uses: actions/upload-release-asset@v1
@@ -193,6 +188,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+          asset_path: ./vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
           asset_content_type: application/gzip
-          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+          asset_name: vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
