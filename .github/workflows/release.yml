@@ -88,8 +88,6 @@ jobs:
         shell: bash
         run: |
           cp ./target/${{ matrix.target }}/release/${{ env.RELEASE_BIN }}.exe ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}/${{ env.RELEASE_BIN }}.exe
-          cp ./target/${{ matrix.target }}/release/${{ env.RELEASE_BIN }}.exe wasm-pack-init.exe
-          mv wasm-pack-init.exe ${{ env.RELEASE_DIR }}
 
       - name: Create tarball
         shell: bash
@@ -171,16 +169,6 @@ jobs:
           asset_path: ./vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: vanityeth-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
-
-      - name: Release Windows init exe
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vanityeth-init.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
-          asset_name: vanityeth-init.exe
 
       - name: Release MacOS tarball
         uses: actions/upload-release-asset@v1
