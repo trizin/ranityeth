@@ -1,6 +1,7 @@
 use crate::conf::config::{AppConfig, Strategy};
 use crate::eth::Wallet;
 use crate::eth::{self, checksum};
+use crate::fs::append_to_file;
 use crate::utils;
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -36,7 +37,12 @@ pub fn find_address_starting_with(
             Strategy::Contains => {
                 if address.contains(&config.pattern) {
                     found.store(true, Ordering::Relaxed);
-                    return wallet;
+
+                    if !config.continuous {
+                        return wallet;
+                    } else {
+                        _ = append_to_file("./pks", wallet.private_key.as_str());
+                    }
                 }
             }
             Strategy::Startswith => {
@@ -54,7 +60,11 @@ pub fn find_address_starting_with(
 
                     if score == config.pattern.len() as u64 {
                         found.store(true, Ordering::Relaxed);
-                        return wallet;
+                        if !config.continuous {
+                            return wallet;
+                        } else {
+                            _ = append_to_file("./pks", wallet.private_key.as_str());
+                        }
                     }
                     write_wallet_info(&wallet, &config)
                 }
