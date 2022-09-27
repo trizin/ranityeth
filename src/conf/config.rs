@@ -4,6 +4,7 @@ use super::parser;
 pub enum Strategy {
     Contains,
     Startswith,
+    Trailing,
 }
 
 #[derive(Clone)]
@@ -21,8 +22,12 @@ pub fn get_config() -> AppConfig {
     let strategy = match args.strategy.as_str() {
         "contains" => Strategy::Contains,
         "startswith" => Strategy::Startswith,
+        "trailing" => Strategy::Trailing,
         _ => panic!("Invalid strategy"),
     };
+    if strategy == Strategy::Trailing && args.pattern.len() != 1 {
+        panic!("Trailing strategy only accepts a single character pattern");
+    }
 
     AppConfig {
         pattern: args.pattern,

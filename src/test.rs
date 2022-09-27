@@ -27,6 +27,13 @@ mod tests {
         let res = utils::calculate_estimated_time(50, 100);
         assert_eq!(res, 2);
     }
+
+    #[test]
+    fn test_calculate_estimated_time_zero_divison() {
+        let res = utils::calculate_estimated_time(0, 0);
+        assert_eq!(res, 0);
+    }
+
     #[test]
     fn test_calculate_time_left() {
         let res = utils::time_left(90, 10);

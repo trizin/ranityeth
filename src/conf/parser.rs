@@ -7,7 +7,7 @@ pub(crate) struct Args {
     #[clap(short, long, value_parser)]
     pub pattern: String,
 
-    /// Either use "contains" or "startswith"
+    /// "contains", "startswith" or "trailing"
     #[clap(short, long, value_parser)]
     pub strategy: String,
 
