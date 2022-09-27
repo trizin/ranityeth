@@ -22,6 +22,10 @@ pub(crate) struct Args {
     /// Number of threads to use
     #[clap(short, long, value_parser, default_value_t = 1)]
     pub threads: u8,
+
+    /// continuous mode
+    #[clap(short, long, value_parser, default_value_t = false)]
+    pub continuous: bool,
 }
 
 pub(crate) fn parse() -> Args {

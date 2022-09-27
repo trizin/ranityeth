@@ -14,6 +14,7 @@ pub struct AppConfig {
     pub casesensitive: bool,
     pub contract: bool,
     pub threads: u32,
+    pub continuous: bool,
 }
 
 pub fn get_config() -> AppConfig {
@@ -28,11 +29,16 @@ pub fn get_config() -> AppConfig {
         panic!("Trailing strategy only accepts a single character pattern");
     }
 
+    if args.continuous && strategy == Strategy::Trailing {
+        panic!("Continuous mode is not supported with trailing strategy");
+    }
+
     AppConfig {
         pattern: args.pattern,
         strategy,
         casesensitive: args.casesensitive,
         contract: args.contract,
         threads: args.threads as u32,
+        continuous: args.continuous,
     }
 }

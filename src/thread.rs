@@ -1,6 +1,7 @@
 use crate::conf::config::{AppConfig, Strategy};
 use crate::eth::Wallet;
 use crate::eth::{self, checksum};
+use crate::fs::append_to_file;
 use crate::utils;
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -35,8 +36,12 @@ pub fn find_address_starting_with(
         match config.strategy {
             Strategy::Contains => {
                 if address.contains(&config.pattern) {
-                    found.store(true, Ordering::Relaxed);
-                    return wallet;
+                    if !config.continuous {
+                        found.store(true, Ordering::Relaxed);
+                        return wallet;
+                    } else {
+                        _ = append_to_file("./pks", format!("{}\n", wallet.private_key).as_str());
+                    }
                 }
             }
             Strategy::Startswith => {
@@ -48,15 +53,24 @@ pub fn find_address_starting_with(
                     }
                 }
 
-                if score > best_score.load(Ordering::Relaxed) {
-                    println!("SCORE: {}", score);
-                    best_score.store(score, Ordering::Relaxed);
+                if score > best_score.load(Ordering::Relaxed) || config.continuous {
+                    if !config.continuous {
+                        println!("SCORE: {}", score);
+                        best_score.store(score, Ordering::Relaxed);
+                        write_wallet_info(&wallet, &config);
+                    }
 
                     if score == config.pattern.len() as u64 {
-                        found.store(true, Ordering::Relaxed);
-                        return wallet;
+                        if !config.continuous {
+                            found.store(true, Ordering::Relaxed);
+                            return wallet;
+                        } else {
+                            _ = append_to_file(
+                                "./pks",
+                                format!("{}\n", wallet.private_key).as_str(),
+                            );
+                        }
                     }
-                    write_wallet_info(&wallet, &config)
                 }
             }
             Strategy::Trailing => {
