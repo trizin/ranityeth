@@ -46,7 +46,7 @@ pub fn find_address_starting_with(
         let _score = config.strategy.score(&config, &address);
         match config.strategy {
             Strategy::Contains => {
-                if address.contains(&config.pattern) {
+                if _score == 1 {
                     if !config.continuous {
                         write_wallet_info(&wallet, &config, salt);
                         found.store(true, Ordering::Relaxed);
