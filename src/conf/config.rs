@@ -1,13 +1,5 @@
-use crate::utils;
-
 use super::parser;
-
-#[derive(Clone, PartialEq)]
-pub enum Strategy {
-    Contains,
-    Startswith,
-    Trailing,
-}
+use crate::strategy::Strategy;
 
 #[derive(Clone)]
 pub struct AppConfig {

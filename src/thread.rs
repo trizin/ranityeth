@@ -1,7 +1,8 @@
-use crate::conf::config::{AppConfig, Strategy};
+use crate::conf::config::AppConfig;
 use crate::eth::Wallet;
 use crate::eth::{self, checksum};
 use crate::fs::append_to_file;
+use crate::strategy::{Score, Strategy};
 use crate::{create2, utils};
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -42,6 +43,7 @@ pub fn find_address_starting_with(
             true => checksum(&address),
         };
 
+        let _score = config.strategy.score(&config, &address);
         match config.strategy {
             Strategy::Contains => {
                 if address.contains(&config.pattern) {
@@ -55,22 +57,14 @@ pub fn find_address_starting_with(
                 }
             }
             Strategy::Startswith => {
-                let mut score = 0;
-                // find how many characters match at the beginning
-                for (i, c) in config.pattern.chars().enumerate() {
-                    if address.chars().nth(i).unwrap() == c {
-                        score += 1;
-                    }
-                }
-
-                if score > best_score.load(Ordering::Relaxed) || config.continuous {
+                if _score > best_score.load(Ordering::Relaxed) || config.continuous {
                     if !config.continuous {
-                        println!("SCORE: {}", score);
-                        best_score.store(score, Ordering::Relaxed);
+                        println!("SCORE: {}", _score);
+                        best_score.store(_score, Ordering::Relaxed);
                         write_wallet_info(&wallet, &config, salt);
                     }
 
-                    if score == config.pattern.len() as u64 {
+                    if _score == config.pattern.len() as u64 {
                         if !config.continuous {
                             found.store(true, Ordering::Relaxed);
                             return wallet;
@@ -86,18 +80,9 @@ pub fn find_address_starting_with(
             Strategy::Trailing => {
                 // config.pattern should be one character
                 // count how many consecutive characters are at the beginning of the address
-
-                let mut count = 0;
-                for c in address.chars() {
-                    if c == config.pattern.chars().next().unwrap() {
-                        count += 1;
-                    } else {
-                        break;
-                    }
-                }
-                if count > best_score.load(Ordering::Relaxed) {
-                    println!("SCORE: {}", count);
-                    best_score.store(count, Ordering::Relaxed);
+                if _score > best_score.load(Ordering::Relaxed) {
+                    println!("SCORE: {}", _score);
+                    best_score.store(_score, Ordering::Relaxed);
                     write_wallet_info(&wallet, &config, salt)
                 }
             }
@@ -138,6 +123,7 @@ pub fn spawn_threads(
 }
 
 pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32]) {
+    print!("--------------\n");
     if config.create2 {
         let salt_hex = hex::encode(&salt);
         println!("Found salt: {}", salt_hex);
@@ -145,7 +131,7 @@ pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32]) {
     println!("Private key: {}", wallet.private_key);
     println!("Address: 0x{}", checksum(&wallet.public_key));
     if config.contract {
-        let mut contract_address;
+        let contract_address;
         if config.create2 {
             contract_address =
                 create2::calc_addr(config.deployer.as_str(), salt, config.bytecode.as_str());
@@ -154,7 +140,7 @@ pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32]) {
         }
         println!("Contract address: 0x{}", checksum(&contract_address));
     }
-    print!("--------------\n\n")
+    print!("--------------\n\n\n");
 }
 
 pub fn run(config: AppConfig) {
@@ -178,7 +164,7 @@ pub fn run(config: AppConfig) {
     let start_time = Instant::now();
     let mut last_generated = 0;
     loop {
-        if let Ok(wallet) = rx.recv_timeout(Duration::from_millis(1000)) {
+        if let Ok(_wallet) = rx.recv_timeout(Duration::from_millis(1000)) {
             if found.load(Ordering::Relaxed) {
                 break;
             }
