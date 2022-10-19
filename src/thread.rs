@@ -2,7 +2,7 @@ use crate::conf::config::{AppConfig, Strategy};
 use crate::eth::Wallet;
 use crate::eth::{self, checksum};
 use crate::fs::append_to_file;
-use crate::utils;
+use crate::{create2, utils};
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
@@ -17,18 +17,27 @@ pub fn find_address_starting_with(
     config: AppConfig,
     best_score: Arc<AtomicU64>,
 ) -> Wallet {
+    let mut salt = create2::generate_salt(); // used for create2
+    let mut wallet = Wallet::new();
     loop {
         if found.load(Ordering::Relaxed) {
             return Wallet::new();
         }
-        let wallet = Wallet::new();
 
-        let address = match config.contract {
-            false => wallet.public_key.clone(),
-            true => eth::generate_contract_address(&wallet),
-        };
+        let mut address;
 
-        let address = match config.casesensitive {
+        if config.create2 {
+            salt = create2::derive_salt(salt);
+            address = create2::calc_addr(config.deployer.as_str(), salt, config.bytecode.as_str());
+        } else {
+            wallet = Wallet::new();
+            address = match config.contract {
+                false => wallet.public_key.clone(),
+                true => eth::generate_contract_address(&wallet),
+            };
+        }
+
+        address = match config.casesensitive {
             false => address,
             true => checksum(&address),
         };
@@ -37,6 +46,7 @@ pub fn find_address_starting_with(
             Strategy::Contains => {
                 if address.contains(&config.pattern) {
                     if !config.continuous {
+                        write_wallet_info(&wallet, &config, salt);
                         found.store(true, Ordering::Relaxed);
                         return wallet;
                     } else {
@@ -57,7 +67,7 @@ pub fn find_address_starting_with(
                     if !config.continuous {
                         println!("SCORE: {}", score);
                         best_score.store(score, Ordering::Relaxed);
-                        write_wallet_info(&wallet, &config);
+                        write_wallet_info(&wallet, &config, salt);
                     }
 
                     if score == config.pattern.len() as u64 {
@@ -88,7 +98,7 @@ pub fn find_address_starting_with(
                 if count > best_score.load(Ordering::Relaxed) {
                     println!("SCORE: {}", count);
                     best_score.store(count, Ordering::Relaxed);
-                    write_wallet_info(&wallet, &config)
+                    write_wallet_info(&wallet, &config, salt)
                 }
             }
         }
@@ -127,11 +137,21 @@ pub fn spawn_threads(
     threads
 }
 
-pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig) {
+pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32]) {
+    if config.create2 {
+        let salt_hex = hex::encode(&salt);
+        println!("Found salt: {}", salt_hex);
+    }
     println!("Private key: {}", wallet.private_key);
     println!("Address: 0x{}", checksum(&wallet.public_key));
     if config.contract {
-        let contract_address = eth::generate_contract_address(&wallet);
+        let mut contract_address;
+        if config.create2 {
+            contract_address =
+                create2::calc_addr(config.deployer.as_str(), salt, config.bytecode.as_str());
+        } else {
+            contract_address = eth::generate_contract_address(&wallet);
+        }
         println!("Contract address: 0x{}", checksum(&contract_address));
     }
     print!("--------------\n\n")
@@ -159,7 +179,6 @@ pub fn run(config: AppConfig) {
     let mut last_generated = 0;
     loop {
         if let Ok(wallet) = rx.recv_timeout(Duration::from_millis(1000)) {
-            write_wallet_info(&wallet, &config);
             if found.load(Ordering::Relaxed) {
                 break;
             }

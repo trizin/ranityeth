@@ -1,14 +1,14 @@
 use rand::RngCore;
 use tiny_keccak::{Hasher, Keccak};
 
-fn generate_salt() -> [u8; 32] {
+pub fn generate_salt() -> [u8; 32] {
     // Generate a random salt
     let mut salt = [0u8; 32];
     rand::thread_rng().fill_bytes(&mut salt);
     salt
 }
 
-fn derive_salt(salt: [u8; 32]) -> [u8; 32] {
+pub fn derive_salt(salt: [u8; 32]) -> [u8; 32] {
     // derive salt from the previous one
     let mut derived_salt = salt;
     let mut rng = rand::thread_rng();
@@ -19,7 +19,7 @@ fn derive_salt(salt: [u8; 32]) -> [u8; 32] {
     derived_salt
 }
 
-fn calc_addr(address: &str, salt: [u8; 32], bytecode: &str) -> String {
+pub fn calc_addr(address: &str, salt: [u8; 32], bytecode: &str) -> String {
     let mut sha3 = Keccak::v256();
     let address = hex::decode(address).unwrap();
     let bytecode = hex::decode(bytecode).unwrap();

@@ -23,7 +23,7 @@ pub struct AppConfig {
 }
 
 pub fn get_config() -> AppConfig {
-    let args = parser::parse();
+    let mut args = parser::parse();
     let strategy = match args.strategy.as_str() {
         "contains" => Strategy::Contains,
         "startswith" => Strategy::Startswith,
@@ -34,7 +34,8 @@ pub fn get_config() -> AppConfig {
         panic!("Trailing strategy only accepts a single character pattern");
     }
 
-    if args.contract && args.create2 {
+    if args.create2 {
+        args.contract = true;
         // deployer cannot be empty
         assert!(
             !args.deployer.is_empty(),
@@ -55,7 +56,7 @@ pub fn get_config() -> AppConfig {
             args.deployer.replace("0x", "").len() == 40,
             "Invalid deployer address"
         );
-        assert!(utils::is_possible_pattern(_addr.as_str()));
+        // assert!(utils::is_possible_pattern(_addr.as_str()));
     }
 
     if args.continuous && strategy == Strategy::Trailing {
