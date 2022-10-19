@@ -180,7 +180,7 @@ pub fn run(config: AppConfig) {
                 "\r Speed: {} h/s. Up-time: {}s. Max time left: {}s. Generated {} addresses",
                 speed, elapsed, time_left, generated
             );
-            std::io::stdout().flush();
+            _ = std::io::stdout().flush();
         }
     }
 
