@@ -28,6 +28,7 @@ pub fn get_config() -> AppConfig {
 
     if args.create2 {
         args.contract = true;
+        args.deployer = args.deployer.replace("0x", "");
         // deployer cannot be empty
         assert!(
             !args.deployer.is_empty(),
@@ -43,11 +44,7 @@ pub fn get_config() -> AppConfig {
             "Bytecode length must be greater than 32 bytes"
         );
 
-        let _addr = args.deployer.replace("0x", "");
-        assert!(
-            args.deployer.replace("0x", "").len() == 40,
-            "Invalid deployer address"
-        );
+        assert!(args.deployer.len() == 40, "Invalid deployer address");
         // assert!(utils::is_possible_pattern(_addr.as_str()));
     }
 
