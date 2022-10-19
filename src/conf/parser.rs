@@ -24,8 +24,20 @@ pub(crate) struct Args {
     pub threads: u8,
 
     /// continuous mode
-    #[clap(short, long, value_parser, default_value_t = false)]
+    #[clap(long, value_parser, default_value_t = false)]
     pub continuous: bool,
+
+    /// Calculate the deployment address using create2, must set bytecode and deployer address.
+    #[clap(long, value_parser, default_value_t = false)]
+    pub create2: bool,
+
+    /// Bytecode of the contract for create2
+    #[clap(long, value_parser, default_value = "")]
+    pub bytecode: String,
+
+    /// Deployer address for create2
+    #[clap(long, value_parser, default_value = "")]
+    pub deployer: String,
 }
 
 pub(crate) fn parse() -> Args {
