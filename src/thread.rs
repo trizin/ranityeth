@@ -20,6 +20,7 @@ pub fn find_address_starting_with(
 ) -> Wallet {
     let mut salt = create2::generate_salt(); // used for create2
     let mut wallet = Wallet::new();
+    let strategy = &config.strategy;
     loop {
         if found.load(Ordering::Relaxed) {
             return Wallet::new();
@@ -43,12 +44,12 @@ pub fn find_address_starting_with(
             true => checksum(&address),
         };
 
-        let _score = config.strategy.score(&config, &address);
-        match config.strategy {
+        let _score = strategy.score(&config, &address);
+        match strategy {
             Strategy::Contains => {
                 if _score == 1 {
                     if !config.continuous {
-                        write_wallet_info(&wallet, &config, salt);
+                        write_wallet_info(&wallet, &config, salt, _score);
                         found.store(true, Ordering::Relaxed);
                         return wallet;
                     } else {
@@ -59,9 +60,8 @@ pub fn find_address_starting_with(
             Strategy::Startswith => {
                 if _score > best_score.load(Ordering::Relaxed) || config.continuous {
                     if !config.continuous {
-                        println!("SCORE: {}", _score);
                         best_score.store(_score, Ordering::Relaxed);
-                        write_wallet_info(&wallet, &config, salt);
+                        write_wallet_info(&wallet, &config, salt, _score);
                     }
 
                     if _score == config.pattern.len() as u64 {
@@ -81,9 +81,8 @@ pub fn find_address_starting_with(
                 // config.pattern should be one character
                 // count how many consecutive characters are at the beginning of the address
                 if _score > best_score.load(Ordering::Relaxed) {
-                    println!("SCORE: {}", _score);
                     best_score.store(_score, Ordering::Relaxed);
-                    write_wallet_info(&wallet, &config, salt)
+                    write_wallet_info(&wallet, &config, salt, _score)
                 }
             }
         }
@@ -122,14 +121,16 @@ pub fn spawn_threads(
     threads
 }
 
-pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32]) {
+pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32], score: u64) {
     print!("--------------\n");
+    println!("SCORE: {}", score);
     if config.create2 {
         let salt_hex = hex::encode(&salt);
         println!("Found salt: {}", salt_hex);
+    } else {
+        println!("Private key: {}", wallet.private_key);
+        println!("Address: 0x{}", checksum(&wallet.public_key));
     }
-    println!("Private key: {}", wallet.private_key);
-    println!("Address: 0x{}", checksum(&wallet.public_key));
     if config.contract {
         let contract_address;
         if config.create2 {
