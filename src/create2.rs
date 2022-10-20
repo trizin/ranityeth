@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_calc_addr() {
-        let addr = "f426cE76A4925a4AA5Afb4051443D100d33aab33";
+        let addr = "0000000000000000000000000000000000000000";
         let mut salt_byte = [0; 32];
         let salt = "afe78640665423b7d1bc1ec9ad8f6c16b40a8330afd52489c99e150aeed11dc8";
         let _salt_byte = hex::decode(salt).unwrap();
@@ -64,7 +64,7 @@ mod tests {
         let bytecode = "c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffee";
         let bytecode_hash = bytecode_keccak(bytecode);
         let addr = calc_addr(addr, salt_byte, bytecode_hash);
-        assert_eq!(addr, "bd9d0e337c453599a99a4565d4d888865a902cbd");
+        assert_eq!(addr, "79624f7caed7018e447df443efda123c6ec123f1");
     }
 
     #[test]
