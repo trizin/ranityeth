@@ -21,6 +21,7 @@ pub fn find_address_starting_with(
     let mut salt = create2::generate_salt(); // used for create2
     let mut wallet = Wallet::new();
     let strategy = &config.strategy;
+    let bytecode_hash = create2::bytecode_keccak(&config.bytecode);
     loop {
         if found.load(Ordering::Relaxed) {
             return Wallet::new();
@@ -30,7 +31,7 @@ pub fn find_address_starting_with(
 
         if config.create2 {
             salt = create2::derive_salt(salt);
-            address = create2::calc_addr(config.deployer.as_str(), salt, config.bytecode.as_str());
+            address = create2::calc_addr(config.deployer.as_str(), salt, bytecode_hash);
         } else {
             wallet = Wallet::new();
             address = match config.contract {
@@ -134,8 +135,11 @@ pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32], sc
     if config.contract {
         let contract_address;
         if config.create2 {
-            contract_address =
-                create2::calc_addr(config.deployer.as_str(), salt, config.bytecode.as_str());
+            contract_address = create2::calc_addr(
+                config.deployer.as_str(),
+                salt,
+                create2::bytecode_keccak(&config.bytecode),
+            );
         } else {
             contract_address = eth::generate_contract_address(&wallet);
         }

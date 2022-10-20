@@ -19,16 +19,17 @@ pub fn derive_salt(salt: [u8; 32]) -> [u8; 32] {
     derived_salt
 }
 
-pub fn calc_addr(address: &str, salt: [u8; 32], bytecode: &str) -> String {
-    let mut sha3 = Keccak::v256();
+pub fn bytecode_keccak(bytecode: &str) -> [u8; 32] {
+    let mut keccak = Keccak::v256();
+    let mut hash = [0u8; 32];
+    let _h = hex::decode(bytecode).unwrap();
+    keccak.update(&_h);
+    keccak.finalize(&mut hash);
+    hash
+}
+
+pub fn calc_addr(address: &str, salt: [u8; 32], bytecode_hash: [u8; 32]) -> String {
     let address = hex::decode(address).unwrap();
-    let bytecode = hex::decode(bytecode).unwrap();
-
-    // keccak256 bytecode
-    let mut bytecode_hash = vec![0u8; 32];
-    sha3.update(&bytecode);
-    sha3.finalize(&mut bytecode_hash);
-
     // calculate address
     let mut buf = [0; 85];
     buf[0] = 0xFF;
@@ -57,13 +58,13 @@ mod tests {
     fn test_calc_addr() {
         let addr = "f426cE76A4925a4AA5Afb4051443D100d33aab33";
         let mut salt_byte = [0; 32];
-        let salt = "ddeadbeefdeadbeefdeadbeefdeadbeefeadbbeefbeefbeefbeefbeeeefeeeef";
+        let salt = "afe78640665423b7d1bc1ec9ad8f6c16b40a8330afd52489c99e150aeed11dc8";
         let _salt_byte = hex::decode(salt).unwrap();
         salt_byte.copy_from_slice(&_salt_byte);
-        let bytecode = "608060405234801561001057600080fd5b5061001961001e565b6100de565b600054610100900460ff161561008a5760405162461bcd60e51b815260206004820152602760248201527f496e697469616c697a61626c653a20636f6e747261637420697320696e697469604482015266616c697a696e6760c81b606482015261";
-
-        let addr = calc_addr(addr, salt_byte, bytecode);
-        assert_eq!(addr, "7974de645c62cde3873811e8c1cca10dceacc3d3");
+        let bytecode = "c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffee";
+        let bytecode_hash = bytecode_keccak(bytecode);
+        let addr = calc_addr(addr, salt_byte, bytecode_hash);
+        assert_eq!(addr, "bd9d0e337c453599a99a4565d4d888865a902cbd");
     }
 
     #[test]
