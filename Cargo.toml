@@ -12,3 +12,4 @@ tiny-keccak = {version = "2.0.2", features = ["sha3","keccak"]}
 rlp = "0.5.1"
 hex = "0.4.3"
 clap = { version = "3.2.5", features = ["derive"] }
+ocl = "0.19"
