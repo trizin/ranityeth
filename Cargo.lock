@@ -310,6 +310,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ranityeth"
+version = "0.1.2"
+dependencies = [
+ "clap",
+ "hex",
+ "rand",
+ "rlp",
+ "secp256k1",
+ "tiny-keccak",
+]
+
+[[package]]
 name = "rdrand"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -399,18 +411,6 @@ name = "unicode-ident"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ceab39d59e4c9499d4e5a8ee0e2735b891bb7308ac83dfb4e80cad195c9f6f3"
-
-[[package]]
-name = "vanityeth"
-version = "0.1.1"
-dependencies = [
- "clap",
- "hex",
- "rand",
- "rlp",
- "secp256k1",
- "tiny-keccak",
-]
 
 [[package]]
 name = "version_check"

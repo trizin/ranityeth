@@ -1,6 +1,6 @@
-use vanityeth::conf::config::get_config;
+use ranityeth::conf::config::get_config;
 
 fn main() {
     let config = get_config();
-    vanityeth::thread::run(config)
+    ranityeth::thread::run(config)
 }
