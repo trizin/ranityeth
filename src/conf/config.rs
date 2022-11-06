@@ -12,6 +12,7 @@ pub struct AppConfig {
     pub continuous: bool,
     pub deployer: String,
     pub bytecode: String,
+    pub pkstorage_path: String,
 }
 
 pub fn get_config() -> AppConfig {
@@ -62,5 +63,6 @@ pub fn get_config() -> AppConfig {
         continuous: args.continuous,
         deployer: args.deployer,
         bytecode: args.bytecode,
+        pkstorage_path: args.pkstorage_path,
     }
 }

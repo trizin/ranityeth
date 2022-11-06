@@ -38,6 +38,9 @@ pub(crate) struct Args {
     /// Deployer address for create2
     #[clap(long, value_parser, default_value = "")]
     pub deployer: String,
+
+    #[clap(long, value_parser, default_value = "pks.txt")]
+    pub pkstorage_path: String,
 }
 
 pub(crate) fn parse() -> Args {
