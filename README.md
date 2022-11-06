@@ -4,17 +4,18 @@ Generate vanity ethereum addresses with rust.
 ## Usage
 
 ```js
-vanityeth 0.1.0
+vanityeth 0.1.1
 
 USAGE:
     vanityeth [OPTIONS] --pattern <PATTERN> --strategy <STRATEGY>
 
 OPTIONS:
     -c, --casesensitive          Whether the pattern is case sensitive
+        --continuous             Continuous mode
         --contract               Search for a contract address
     -h, --help                   Print help information
     -p, --pattern <PATTERN>      The pattern to look for
-    -s, --strategy <STRATEGY>    Either use "contains" or "startswith"
+    -s, --strategy <STRATEGY>    "contains", "startswith" or "trailing"
     -t, --threads <THREADS>      Number of threads to use [default: 1]
     -V, --version                Print version information
 ```

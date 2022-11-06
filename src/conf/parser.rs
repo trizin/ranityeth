@@ -23,7 +23,7 @@ pub(crate) struct Args {
     #[clap(short, long, value_parser, default_value_t = 1)]
     pub threads: u8,
 
-    /// continuous mode
+    /// Continuous mode
     #[clap(long, value_parser, default_value_t = false)]
     pub continuous: bool,
 
