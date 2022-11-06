@@ -1,8 +1,9 @@
-use crate::conf::config::{AppConfig, Strategy};
+use crate::conf::config::AppConfig;
 use crate::eth::Wallet;
 use crate::eth::{self, checksum};
 use crate::fs::append_to_file;
-use crate::utils;
+use crate::strategy::{Score, Strategy};
+use crate::{create2, utils};
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
@@ -17,26 +18,39 @@ pub fn find_address_starting_with(
     config: AppConfig,
     best_score: Arc<AtomicU64>,
 ) -> Wallet {
+    let mut salt = create2::generate_salt(); // used for create2
+    let mut wallet = Wallet::new();
+    let strategy = &config.strategy;
+    let bytecode_hash = create2::bytecode_keccak(&config.bytecode);
     loop {
         if found.load(Ordering::Relaxed) {
             return Wallet::new();
         }
-        let wallet = Wallet::new();
 
-        let address = match config.contract {
-            false => wallet.public_key.clone(),
-            true => eth::generate_contract_address(&wallet),
-        };
+        let mut address;
 
-        let address = match config.casesensitive {
+        if config.create2 {
+            salt = create2::derive_salt(salt);
+            address = create2::calc_addr(config.deployer.as_str(), salt, bytecode_hash);
+        } else {
+            wallet = Wallet::new();
+            address = match config.contract {
+                false => wallet.public_key.clone(),
+                true => eth::generate_contract_address(&wallet),
+            };
+        }
+
+        address = match config.casesensitive {
             false => address,
             true => checksum(&address),
         };
 
-        match config.strategy {
+        let _score = strategy.score(&config, &address);
+        match strategy {
             Strategy::Contains => {
-                if address.contains(&config.pattern) {
+                if _score == 1 {
                     if !config.continuous {
+                        write_wallet_info(&wallet, &config, salt, _score);
                         found.store(true, Ordering::Relaxed);
                         return wallet;
                     } else {
@@ -45,22 +59,13 @@ pub fn find_address_starting_with(
                 }
             }
             Strategy::Startswith => {
-                let mut score = 0;
-                // find how many characters match at the beginning
-                for (i, c) in config.pattern.chars().enumerate() {
-                    if address.chars().nth(i).unwrap() == c {
-                        score += 1;
-                    }
-                }
-
-                if score > best_score.load(Ordering::Relaxed) || config.continuous {
+                if _score > best_score.load(Ordering::Relaxed) || config.continuous {
                     if !config.continuous {
-                        println!("SCORE: {}", score);
-                        best_score.store(score, Ordering::Relaxed);
-                        write_wallet_info(&wallet, &config);
+                        best_score.store(_score, Ordering::Relaxed);
+                        write_wallet_info(&wallet, &config, salt, _score);
                     }
 
-                    if score == config.pattern.len() as u64 {
+                    if _score == config.pattern.len() as u64 {
                         if !config.continuous {
                             found.store(true, Ordering::Relaxed);
                             return wallet;
@@ -76,19 +81,9 @@ pub fn find_address_starting_with(
             Strategy::Trailing => {
                 // config.pattern should be one character
                 // count how many consecutive characters are at the beginning of the address
-
-                let mut count = 0;
-                for c in address.chars() {
-                    if c == config.pattern.chars().next().unwrap() {
-                        count += 1;
-                    } else {
-                        break;
-                    }
-                }
-                if count > best_score.load(Ordering::Relaxed) {
-                    println!("SCORE: {}", count);
-                    best_score.store(count, Ordering::Relaxed);
-                    write_wallet_info(&wallet, &config)
+                if _score > best_score.load(Ordering::Relaxed) {
+                    best_score.store(_score, Ordering::Relaxed);
+                    write_wallet_info(&wallet, &config, salt, _score)
                 }
             }
         }
@@ -127,14 +122,30 @@ pub fn spawn_threads(
     threads
 }
 
-pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig) {
-    println!("Private key: {}", wallet.private_key);
-    println!("Address: 0x{}", checksum(&wallet.public_key));
+pub fn write_wallet_info(wallet: &Wallet, config: &AppConfig, salt: [u8; 32], score: u64) {
+    print!("--------------\n");
+    println!("SCORE: {}", score);
+    if config.create2 {
+        let salt_hex = hex::encode(&salt);
+        println!("Found salt: {}", salt_hex);
+    } else {
+        println!("Private key: {}", wallet.private_key);
+        println!("Address: 0x{}", checksum(&wallet.public_key));
+    }
     if config.contract {
-        let contract_address = eth::generate_contract_address(&wallet);
+        let contract_address;
+        if config.create2 {
+            contract_address = create2::calc_addr(
+                config.deployer.as_str(),
+                salt,
+                create2::bytecode_keccak(&config.bytecode),
+            );
+        } else {
+            contract_address = eth::generate_contract_address(&wallet);
+        }
         println!("Contract address: 0x{}", checksum(&contract_address));
     }
-    print!("--------------\n\n")
+    print!("--------------\n\n\n");
 }
 
 pub fn run(config: AppConfig) {
@@ -158,8 +169,7 @@ pub fn run(config: AppConfig) {
     let start_time = Instant::now();
     let mut last_generated = 0;
     loop {
-        if let Ok(wallet) = rx.recv_timeout(Duration::from_millis(1000)) {
-            write_wallet_info(&wallet, &config);
+        if let Ok(_wallet) = rx.recv_timeout(Duration::from_millis(1000)) {
             if found.load(Ordering::Relaxed) {
                 break;
             }
@@ -180,7 +190,7 @@ pub fn run(config: AppConfig) {
                 "\r Speed: {} h/s. Up-time: {}s. Max time left: {}s. Generated {} addresses",
                 speed, elapsed, time_left, generated
             );
-            std::io::stdout().flush();
+            _ = std::io::stdout().flush();
         }
     }
 
