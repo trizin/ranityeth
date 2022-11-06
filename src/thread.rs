@@ -55,7 +55,7 @@ pub fn find_address_starting_with(
                         return wallet;
                     } else {
                         _ = append_to_file(
-                            config.pkstorage_path,
+                            config.pkstorage_path.as_str(),
                             format!("{}\n", wallet.private_key).as_str(),
                         );
                     }
@@ -74,7 +74,7 @@ pub fn find_address_starting_with(
                             return wallet;
                         } else {
                             _ = append_to_file(
-                                config.pkstorage_path,
+                                config.pkstorage_path.as_str(),
                                 format!("{}\n", wallet.private_key).as_str(),
                             );
                         }
