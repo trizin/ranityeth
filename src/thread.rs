@@ -54,7 +54,10 @@ pub fn find_address_starting_with(
                         found.store(true, Ordering::Relaxed);
                         return wallet;
                     } else {
-                        _ = append_to_file("./pks", format!("{}\n", wallet.private_key).as_str());
+                        _ = append_to_file(
+                            config.pkstorage_path,
+                            format!("{}\n", wallet.private_key).as_str(),
+                        );
                     }
                 }
             }
@@ -71,7 +74,7 @@ pub fn find_address_starting_with(
                             return wallet;
                         } else {
                             _ = append_to_file(
-                                "./pks",
+                                config.pkstorage_path,
                                 format!("{}\n", wallet.private_key).as_str(),
                             );
                         }
